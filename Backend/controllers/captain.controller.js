@@ -54,7 +54,7 @@ class captainController {
     try {
       const captain = await captainModel.findOne({ email }).select("+password");
       if (!captain) {
-        return errorResponse(res, 401, "Invalid email or password");
+        return errorResponse(res, 400, "Invalid email or password");
       }
 
       const issMatch = await captain.comparePassword(password);

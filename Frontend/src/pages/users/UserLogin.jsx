@@ -1,24 +1,57 @@
-import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import TravelImg from "../../assets/travel.png";
+import { showToast } from "../../utils/toast";
+import { loginUser } from "../../services/userService";
+import { useUserContext } from "../../context/userContext";
 
 const UserLogin = () => {
   const { register, handleSubmit } = useForm();
-  const [_, setUserData] = useState({});
+  const navigate = useNavigate();
+  const { setUser } = useUserContext();
+
+  const loginMutation = useMutation({
+    mutationFn: loginUser,
+    mutationKey: ["loginUser"],
+    onError: (error) => {
+      console.error("Login error:", error);
+      showToast.error(error.response?.data?.message || "Login failed");
+    },
+    onSuccess: (data) => {
+      showToast.success(data.message || "Login successful!");
+      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
+      navigate("/home");
+    },
+  });
+
   const onSubmit = (data) => {
-    setUserData({
-      email: data.email,
-      password: data.password,
+    if (!data.email || !data.password) {
+      showToast.error("Email and password are required.");
+      return;
+    }
+    const loadingToast = showToast.loading("Signing you in...");
+
+    loginMutation.mutate(data, {
+      onSettled: () => {
+        showToast.dismiss(loadingToast);
+      },
     });
   };
 
   return (
     <div className="p-7 space-y-4">
-      <img
-        className="w-16"
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Uber_logo_2018.svg/2560px-Uber_logo_2018.svg.png"
-        alt="Uber Logo"
-      />
+      <div
+        className="bg-cover bg-center bg-no-repeat flex-1 flex flex-col justify-start w-full h-[calc(100vh-30rem)] pt-8"
+        style={{ backgroundImage: `url(${TravelImg})` }}>
+        <img
+          className="w-16"
+          src="https://img-cdn.publive.online/fit-in/1200x675/filters:format(webp)/afaqs/media/post_attachments/5d06d6c64c9a6847a59485146fc4f7a60eebd6a17e1f4b286bb3fb3e6cf5c710.jpg"
+          alt="Uber Logo"
+        />
+      </div>
       <div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-7">
           <div>
@@ -41,8 +74,9 @@ const UserLogin = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-[#111111] text-white py-2 px-4 rounded-md hover:bg-blue-600">
-            Login
+            disabled={loginMutation.isPending}
+            className="w-full bg-[#111111] text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:opacity-50">
+            {loginMutation.isPending ? "Logging in..." : "Login"}
           </button>
         </form>
         <p className="text-center text-gray-500 py-1">

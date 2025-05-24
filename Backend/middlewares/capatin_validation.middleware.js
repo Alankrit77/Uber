@@ -54,11 +54,6 @@ const validateCaptainRegistration = [
 ];
 const validateCaptainLogin = [
   body("email").isEmail().withMessage("Please enter a valid email address"),
-  body("password")
-    .isString()
-    .withMessage("Password must be a string")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
 ];
 
 module.exports = {

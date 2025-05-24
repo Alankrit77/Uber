@@ -1,24 +1,60 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+import TravelImg from "../../assets/captain_login.png";
+import { useCaptainContext } from "../../context/captainContext";
+import { showToast } from "../../utils/toast";
+import { useMutation } from "@tanstack/react-query";
+import { loginCaptain } from "../../services/CaptainService";
 
 const CaptainLogin = () => {
   const { register, handleSubmit } = useForm();
-  const [_, setCaptainData] = useState({});
+  const { setCaptainData } = useCaptainContext();
+  const navigate = useNavigate();
+
+  const captainLoginMutation = useMutation({
+    mutationFn: loginCaptain,
+    onSuccess: (data) => {
+      setCaptainData(data);
+      showToast.success("Login successful");
+      navigate("/home");
+    },
+    onError: (error) => {
+      console.error("Login error:", error);
+      showToast.error(error?.response?.data?.message || "Login failed");
+    },
+  });
+
   const onSubmit = (data) => {
-    setCaptainData({
-      email: data.email,
-      password: data.password,
+    const { email, password } = data;
+    if (!email || !password) {
+      showToast.error("Email and password are required");
+      return;
+    }
+    const payload = {
+      email,
+      password,
+    };
+    const loadingToast = showToast.loading("Logging in...");
+    captainLoginMutation.mutate(payload, {
+      onSettled: () => {
+        showToast.dismiss(loadingToast);
+      },
     });
   };
+
   return (
     <div className="p-7 space-y-4">
-      <img
-        className="w-16"
-        src="https://www.svgrepo.com/show/505031/uber-driver.svg"
-        alt="Uber Logo"
-      />
+      <div
+        className="bg-cover bg-center bg-no-repeat flex-1 flex flex-col justify-start w-full h-[calc(100vh-25rem)] pt-8"
+        style={{ backgroundImage: `url(${TravelImg})` }}>
+        <img
+          className="w-16"
+          src="https://www.svgrepo.com/show/505031/uber-driver.svg"
+          alt="Uber Logo"
+        />
+      </div>
       <div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
           <div>

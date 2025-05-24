@@ -12,9 +12,7 @@ const registerValidation = [
 
 const loginValidation = [
   body("email").isEmail().withMessage("Email is required"),
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
+  // body("password")..withMessage("Password is required"),
 ];
 
 module.exports = { registerValidation, loginValidation };

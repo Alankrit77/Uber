@@ -43,6 +43,7 @@ class UserController {
         return res.status(422).json({ errors: errors.array() });
       }
       const { email, password } = req.body;
+
       const user = await userModel.findOne({ email }).select("+password");
       if (!user) {
         return errorResponse(res, 401, "Invalid email or password");
