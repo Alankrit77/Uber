@@ -41,4 +41,20 @@ const logoutUser = async () => {
   }
 };
 
-export { registerUser, loginUser, logoutUser };
+const getUserProfile = async () => {
+  try {
+    const token = localStorage.getItem("UserToken");
+    if (token) {
+      setAuthToken(token);
+    }
+
+    const response = await fetcher("users/profile", HttpMethods.GET);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};
+``;
+
+export { registerUser, loginUser, logoutUser, getUserProfile };

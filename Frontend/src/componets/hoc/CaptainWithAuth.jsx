@@ -1,37 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { getCaptainProfile } from "../../services/captainService";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
 
 const CaptainWithAuth = ({ children }) => {
   const token = localStorage.getItem("CaptainToken");
-  const navigate = useNavigate();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["captainProfile"],
     queryFn: getCaptainProfile,
     enabled: !!token,
+    retry: 1,
   });
 
-  useEffect(() => {
-    if (!token) {
-      navigate("/captain/login");
-      return;
-    }
-
-    if (!isLoading && (isError || !data?.captain)) {
-      localStorage.removeItem("CaptainToken");
-      navigate("/captain/login");
-    }
-  }, [token, isLoading, isError, data, navigate]);
-
-  if (isLoading) return <div>Loading...</div>;
-
-  if (data?.captain) {
-    return <>{children}</>;
+  if (!token) {
+    return <Navigate to="/captain/login" replace />;
   }
 
-  return null;
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError || !data?.captain) {
+    localStorage.removeItem("CaptainToken");
+    return <Navigate to="/captain/login" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 export default CaptainWithAuth;

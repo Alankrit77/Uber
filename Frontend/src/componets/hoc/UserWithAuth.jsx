@@ -1,13 +1,33 @@
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useUserContext } from "../../context/userContext.jsx";
+import { getUserProfile } from "../../services/userService";
 
 const UserWithAuth = ({ children }) => {
-  const { user } = useUserContext();
   const token = localStorage.getItem("UserToken");
-  const isAuthenticated = (user && user.email) || token;
-  console.log("WithAuth isAuthenticated:", isAuthenticated);
-  return isAuthenticated ? <div>{children}</div> : <Navigate to="/login" />;
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: getUserProfile,
+    enabled: !!token,
+    retry: 1,
+  });
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError || !data?.user) {
+    localStorage.removeItem("UserToken");
+    localStorage.removeItem("user");
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 export default UserWithAuth;
