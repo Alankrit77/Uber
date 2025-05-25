@@ -22,7 +22,7 @@ const UserLogin = () => {
       showToast.success(data.message || "Login successful!");
       setUser(data.user);
       localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("UserToken", data.token);
       navigate("/home");
     },
   });

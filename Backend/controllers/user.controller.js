@@ -57,7 +57,12 @@ class UserController {
 
       const userToSend = user.toObject();
       delete userToSend.password;
-      res.cookie("token", token);
+      res.cookie("UserToken", token, {
+        httpOnly: true, // Can't be accessed via JS
+        secure: true, // Only over HTTPS
+        sameSite: "Strict", // Protects against CSRF
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      });
       successResponse(res, 200, "User logged in successfully", {
         user: userToSend,
         token,
@@ -77,13 +82,24 @@ class UserController {
       next(error);
     }
   };
-  logoutUser = async (req, res, next) => {
-    const token =
-      req.cookies?.token || req.headers?.authorization?.split(" ")[1];
-    await blacklistTokenModel.create({ token: token });
-    res.clearCookie("token");
 
-    successResponse(res, 200, "User logged out successfully");
+  logoutUser = async (req, res, next) => {
+    try {
+      const token =
+        req.cookies?.UserToken || req.headers?.authorization?.split(" ")[1];
+
+      if (!token) {
+        return errorResponse(res, 401, "No token provided");
+      }
+
+      await blacklistTokenModel.create({ token: token });
+      res.clearCookie("UserToken");
+
+      successResponse(res, 200, "User logged out successfully");
+    } catch (error) {
+      errorResponse(res, 500, "Internal server error during logout");
+      next(error);
+    }
   };
 }
 

@@ -14,6 +14,10 @@ router.get(
   authmiddlewareInstance.authUser,
   userController.getUserProfile
 );
-router.get("/logout", userController.logoutUser);
+router.get(
+  "/logout",
+  authmiddlewareInstance.authUser,
+  userController.logoutUser
+);
 
 module.exports = router;

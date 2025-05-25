@@ -5,24 +5,29 @@ import { useEffect } from "react";
 import { showToast } from "../../utils/toast";
 
 const UserLogout = () => {
+  console.log("UserLogout component rendered");
   const navigate = useNavigate();
   const logoutMutation = useMutation({
     mutationFn: logoutUser,
     onSuccess: () => {
+      console.log("User logged out successfully");
       localStorage.removeItem("user");
-      localStorage.removeItem("token");
+      localStorage.removeItem("UserToken");
+      navigate("/login");
+    },
+    onError: (error) => {
+      console.error("Logout failed:", error);
+
       navigate("/login");
     },
   });
 
   useEffect(() => {
-    const loadingToast = showToast.loading("Logging out...");
-    logoutMutation.mutate(undefined, {
-      onSettled: () => {
-        showToast.dismiss(loadingToast);
-      },
+    console.log("UserLogout useEffect called");
+    logoutMutation.mutate(() => {
+      showToast.success("User logged out successfully");
     });
-  }, [logoutMutation]);
+  }, []);
 
   return <div>UserLogout</div>;
 };

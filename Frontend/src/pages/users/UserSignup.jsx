@@ -17,7 +17,7 @@ const UserSignUp = () => {
     mutationKey: ["registerUser"],
     onSuccess: (data) => {
       showToast.success("User registered successfully!");
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("UserToken", data.token);
       setUser(data.user);
       navigate("/home");
     },

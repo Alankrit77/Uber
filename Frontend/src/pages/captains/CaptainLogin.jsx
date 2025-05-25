@@ -6,19 +6,21 @@ import TravelImg from "../../assets/captain_login.png";
 import { useCaptainContext } from "../../context/captainContext";
 import { showToast } from "../../utils/toast";
 import { useMutation } from "@tanstack/react-query";
-import { loginCaptain } from "../../services/CaptainService";
+import { loginCaptain } from "../../services/captainService";
 
 const CaptainLogin = () => {
   const { register, handleSubmit } = useForm();
-  const { setCaptainData } = useCaptainContext();
+  const { setCaptain } = useCaptainContext();
   const navigate = useNavigate();
 
   const captainLoginMutation = useMutation({
     mutationFn: loginCaptain,
     onSuccess: (data) => {
-      setCaptainData(data);
+      setCaptain(data);
+      localStorage.setItem("captain", JSON.stringify(data));
+      localStorage.setItem("CaptainToken", data.token);
       showToast.success("Login successful");
-      navigate("/home");
+      navigate("/captain/home");
     },
     onError: (error) => {
       console.error("Login error:", error);

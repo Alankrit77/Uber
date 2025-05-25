@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { useUserContext } from "../../context/userContext.jsx";
 
-const WithAuth = ({ children }) => {
+const UserWithAuth = ({ children }) => {
   const { user } = useUserContext();
   const token = localStorage.getItem("UserToken");
   const isAuthenticated = (user && user.email) || token;
@@ -10,4 +10,4 @@ const WithAuth = ({ children }) => {
   return isAuthenticated ? <div>{children}</div> : <Navigate to="/login" />;
 };
 
-export default WithAuth;
+export default UserWithAuth;

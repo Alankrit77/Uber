@@ -2,10 +2,15 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 
-import TravelImg from "../../assets/captain.png";
-import { registerCaptain } from "../../services/CaptainService";
+import { registerCaptain } from "../../services/captainService";
 import { showToast } from "../../utils/toast";
 import { useCaptainContext } from "../../context/captainContext";
+import {
+  CAPTAIN_REGISTERED,
+  CAPTAIN_REGISTRATION_FAILED,
+  CREATING_CAPTAIN_ACCOUNT,
+  PASSWORD_MISMATCH,
+} from "../../constants/message";
 
 const CaptainSignup = () => {
   const { setCaptain } = useCaptainContext();
@@ -16,19 +21,23 @@ const CaptainSignup = () => {
     mutationFn: registerCaptain,
     mutationKey: ["registerCaptain"],
     onSuccess: (data) => {
-      showToast.success("Captain registered successfully!");
+      localStorage.setItem("captain", JSON.stringify(data));
+      localStorage.setItem("CaptainToken", data.token);
+      showToast.success(data.message || CAPTAIN_REGISTERED);
       setCaptain(data);
-      navigate("/captain/login");
+      navigate("/captain/home");
     },
     onError: (error) => {
-      showToast.error(error.response?.data?.message || "Registration failed");
+      showToast.error(
+        error.response?.data?.message || CAPTAIN_REGISTRATION_FAILED
+      );
     },
   });
 
   const onSubmit = (data) => {
     console.log("Form Data:", data);
     if (data.password !== data.confirmPassword) {
-      showToast.error("Passwords do not match");
+      showToast.error(PASSWORD_MISMATCH);
       return;
     }
 
@@ -48,7 +57,7 @@ const CaptainSignup = () => {
       },
     };
 
-    const loadingToast = showToast.loading("Creating captain account...");
+    const loadingToast = showToast.loading(CREATING_CAPTAIN_ACCOUNT);
     registerMutation.mutate(payload, {
       onSettled: () => {
         showToast.dismiss(loadingToast);

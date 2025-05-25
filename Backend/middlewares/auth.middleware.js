@@ -36,14 +36,16 @@ class authMiddleware {
     const isBlacklisted = await blacklistModel.findOne({
       token: token,
     });
-    console.log(isBlacklisted);
     if (isBlacklisted) {
       return errorResponse(res, 401, "Unauthorized");
     }
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const captain = await capatinModel.findById(decoded._id);
-      req.captain = captain;
+      req.captain = {
+        captain: captain,
+        token: token,
+      };
       return next();
     } catch (error) {
       return errorResponse(res, 401, "Unauthorized");

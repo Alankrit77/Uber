@@ -15,7 +15,7 @@ router.post(
 router.post(
   "/login",
   validateCaptainLogin,
-  captainControllerInstance.loginCapation
+  captainControllerInstance.loginCaptain
 );
 router.get(
   "/profile",

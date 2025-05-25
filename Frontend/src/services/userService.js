@@ -1,4 +1,4 @@
-import { fetcher } from "../lib/apiService";
+import { fetcher, setAuthToken } from "../lib/apiService";
 import { HttpMethods } from "../lib/apiService";
 
 const registerUser = async (userData) => {
@@ -24,19 +24,17 @@ const loginUser = async (userData) => {
   }
 };
 const logoutUser = async () => {
-  const token = localStorage.getItem("token");
-
   try {
-    const response = await fetcher({
-      url: "users/logout",
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const token = localStorage.getItem("UserToken");
+    if (token) {
+      setAuthToken(token);
+    }
 
-    localStorage.removeItem("token");
-    return response;
+    const response = await fetcher("users/logout", HttpMethods.GET);
+
+    localStorage.removeItem("UserToken");
+    localStorage.removeItem("user");
+    return response.data;
   } catch (error) {
     console.error("Error logging out user:", error);
     throw error;

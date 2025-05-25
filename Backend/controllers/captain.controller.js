@@ -34,13 +34,20 @@ class captainController {
         vehicle.vehicleType,
         phone
       );
-      successResponse(res, 201, "Captain registered successfully", captain);
+      const token = await captain.generateAuthToken();
+      res.cookie("token", token);
+      const captainToSend = captain.toObject();
+      delete captainToSend.password;
+      successResponse(res, 201, "Captain registered successfully", {
+        captain: captainToSend,
+        token,
+      });
     } catch (error) {
       errorResponse(res, 400, error.message);
     }
   };
 
-  loginCapation = async (req, res) => {
+  loginCaptain = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return errorResponse(
@@ -64,7 +71,12 @@ class captainController {
       const token = await captain.generateAuthToken();
       const captainToSend = captain.toObject();
       delete captainToSend.password;
-      res.cookie("token", token);
+      res.cookie("CaptainToken", token, {
+        httpOnly: true, // Can't be accessed via JS
+        secure: true, // Only over HTTPS
+        sameSite: "Strict", // Protects against CSRF
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      });
       successResponse(res, 200, "Captain logged in successfully", {
         captain: captainToSend,
         token,
@@ -84,9 +96,9 @@ class captainController {
   };
   logoutCaptain = async (req, res) => {
     try {
-      const token = req?.cookies?.token;
+      const token = req?.cookies?.CaptainToken;
       await blacklistTokenModel.create({ token: token });
-      res.clearCookie("token");
+      res.clearCookie("CaptainToken");
       successResponse(res, 200, "Captain logged out successfully");
     } catch (error) {
       errorResponse(res, 400, error.message);

@@ -5,8 +5,11 @@ import UserSignUp from "./pages/users/UserSignUp";
 import CaptainLogin from "./pages/captains/CaptainLogin";
 import CaptainSignup from "./pages/captains/CaptainSignup";
 import Home from "./pages/home/Home";
-import WithAuth from "./componets/hoc/WithAuth";
 import UserLogout from "./pages/users/UserLogout";
+import CaptainLogout from "./pages/captains/CaptainLogout";
+import CaptainHome from "./pages/home/CaptainHome.jsx";
+import UserWithAuth from "./componets/hoc/UserWithAuth.jsx";
+import CaptainWithAuth from "./componets/hoc/CaptainWithAuth.jsx";
 
 const App = () => {
   return (
@@ -19,17 +22,33 @@ const App = () => {
       <Route
         path="/home"
         element={
-          <WithAuth>
+          <UserWithAuth>
             <Home />
-          </WithAuth>
+          </UserWithAuth>
         }
       />
       <Route
         path="/user/logout"
         element={
-          <WithAuth>
+          <UserWithAuth>
             <UserLogout />
-          </WithAuth>
+          </UserWithAuth>
+        }
+      />
+      <Route
+        path="/captain/home"
+        element={
+          <CaptainWithAuth>
+            <CaptainHome />
+          </CaptainWithAuth>
+        }
+      />
+      <Route
+        path="/captain/logout"
+        element={
+          <CaptainWithAuth>
+            <CaptainLogout />
+          </CaptainWithAuth>
         }
       />
     </Routes>

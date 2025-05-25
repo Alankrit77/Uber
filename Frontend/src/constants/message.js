@@ -1,0 +1,9 @@
+export const CAPTAIN_REGISTERED = "Captain registered successfully";
+export const CAPTAIN_REGISTRATION_FAILED = "Registration failed";
+export const USER_REGISTERED = "User registered successfully";
+export const USER_REGISTRATION_FAILED = "User registration failed";
+export const USER_LOGGED_IN = "User logged in successfully";
+export const USER_LOGIN_FAILED = "User login failed";
+export const CAPTAIN_LOGGED_IN = "Captain logged in successfully";
+export const PASSWORD_MISMATCH = "Passwords do not match";
+export const CREATING_CAPTAIN_ACCOUNT = "Creating captain account...";
