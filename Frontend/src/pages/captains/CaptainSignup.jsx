@@ -11,6 +11,7 @@ import {
   CREATING_CAPTAIN_ACCOUNT,
   PASSWORD_MISMATCH,
 } from "../../constants/message";
+import { handleCapatainError, handleCaptainSucess } from "../../utils/reactQueryHandlers";
 
 const CaptainSignup = () => {
   const { setCaptain } = useCaptainContext();
@@ -20,18 +21,6 @@ const CaptainSignup = () => {
   const registerMutation = useMutation({
     mutationFn: registerCaptain,
     mutationKey: ["registerCaptain"],
-    onSuccess: (data) => {
-      localStorage.setItem("captain", JSON.stringify(data));
-      localStorage.setItem("CaptainToken", data.token);
-      showToast.success(data.message || CAPTAIN_REGISTERED);
-      setCaptain(data);
-      navigate("/captain/home");
-    },
-    onError: (error) => {
-      showToast.error(
-        error.response?.data?.message || CAPTAIN_REGISTRATION_FAILED
-      );
-    },
   });
 
   const onSubmit = (data) => {
@@ -62,6 +51,8 @@ const CaptainSignup = () => {
       onSettled: () => {
         showToast.dismiss(loadingToast);
       },
+      onSuccess: (data) => handleCaptainSucess(data, navigate, setCaptain),
+      onError: (error) => handleCapatainError(error, navigate, setCaptain),
     });
   };
 

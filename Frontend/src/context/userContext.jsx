@@ -10,8 +10,19 @@ export const UserProvider = ({ children }) => {
       lastname: "",
     },
   });
+  const [selectedVehicle, setSelectedVehicle] = useState();
 
-  const value = { user, setUser };
+  const handleConfirmRide = (id) => {
+    setSelectedVehicle(id);
+  };
+
+  const value = {
+    user,
+    setUser,
+    handleConfirmRide,
+    selectedVehicle,
+    setSelectedVehicle,
+  };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

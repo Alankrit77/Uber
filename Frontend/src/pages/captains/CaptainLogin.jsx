@@ -7,6 +7,10 @@ import { useCaptainContext } from "../../context/captainContext";
 import { showToast } from "../../utils/toast";
 import { useMutation } from "@tanstack/react-query";
 import { loginCaptain } from "../../services/captainService";
+import {
+  handleCapatainError,
+  handleCaptainSucess,
+} from "../../utils/reactQueryHandlers";
 
 const CaptainLogin = () => {
   const { register, handleSubmit } = useForm();
@@ -15,17 +19,6 @@ const CaptainLogin = () => {
 
   const captainLoginMutation = useMutation({
     mutationFn: loginCaptain,
-    onSuccess: (data) => {
-      setCaptain(data);
-      localStorage.setItem("captain", JSON.stringify(data));
-      localStorage.setItem("CaptainToken", data.token);
-      showToast.success("Login successful");
-      navigate("/captain/home");
-    },
-    onError: (error) => {
-      console.error("Login error:", error);
-      showToast.error(error?.response?.data?.message || "Login failed");
-    },
   });
 
   const onSubmit = (data) => {
@@ -43,6 +36,8 @@ const CaptainLogin = () => {
       onSettled: () => {
         showToast.dismiss(loadingToast);
       },
+      onSuccess: (data) => handleCaptainSucess(data, navigate, setCaptain),
+      onError: (error) => handleCapatainError(error, navigate, setCaptain),
     });
   };
 

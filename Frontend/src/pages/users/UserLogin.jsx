@@ -5,6 +5,10 @@ import TravelImg from "../../assets/travel.png";
 import { showToast } from "../../utils/toast";
 import { loginUser } from "../../services/userService";
 import { useUserContext } from "../../context/userContext";
+import {
+  handleUserError,
+  handleUserSuccess,
+} from "../../utils/reactQueryHandlers";
 
 const UserLogin = () => {
   const { register, handleSubmit } = useForm();
@@ -14,17 +18,6 @@ const UserLogin = () => {
   const loginMutation = useMutation({
     mutationFn: loginUser,
     mutationKey: ["loginUser"],
-    onError: (error) => {
-      console.error("Login error:", error);
-      showToast.error(error.response?.data?.message || "Login failed");
-    },
-    onSuccess: (data) => {
-      showToast.success(data.message || "Login successful!");
-      setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("UserToken", data.token);
-      navigate("/home");
-    },
   });
 
   const onSubmit = (data) => {
@@ -38,6 +31,8 @@ const UserLogin = () => {
       onSettled: () => {
         showToast.dismiss(loadingToast);
       },
+      onSuccess: (data) => handleUserSuccess(data, navigate, setUser),
+      onError: (error) => handleUserError(error),
     });
   };
 

@@ -7,7 +7,7 @@ const { errorResponse } = require("../utils/response");
 
 class authMiddleware {
   authUser = async (req, res, next) => {
-    const token = req?.cookie || req?.headers?.authorization.split(" ")[1];
+    const token = req?.cookie || req?.headers?.authorization?.split(" ")[1];
     if (!token) {
       return errorResponse(res, 401, "Unauthorized");
     }
@@ -20,7 +20,6 @@ class authMiddleware {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await userModel.findById(decoded.id);
-      console.log(user);
       req.user = user;
       return next();
     } catch (error) {

@@ -6,6 +6,10 @@ import TravelImg from "../../assets/user_register.png";
 import { registerUser } from "../../services/userService";
 import { showToast } from "../../utils/toast";
 import { useUserContext } from "../../context/userContext";
+import {
+  handleUserError,
+  handleUserSuccess,
+} from "../../utils/reactQueryHandlers";
 
 const UserSignUp = () => {
   const { register, handleSubmit } = useForm();
@@ -15,15 +19,6 @@ const UserSignUp = () => {
   const registerMutation = useMutation({
     mutationFn: registerUser,
     mutationKey: ["registerUser"],
-    onSuccess: (data) => {
-      showToast.success("User registered successfully!");
-      localStorage.setItem("UserToken", data.token);
-      setUser(data.user);
-      navigate("/home");
-    },
-    onError: (error) => {
-      showToast.error(error.response?.data?.message || "Registration failed");
-    },
   });
 
   const onSubmit = (data) => {
@@ -46,6 +41,8 @@ const UserSignUp = () => {
       onSettled: () => {
         showToast.dismiss(loadingToast);
       },
+      onSuccess: (data) => handleUserSuccess(data, navigate, setUser),
+      onError: (error) => handleUserError(error),
     });
   };
   return (
