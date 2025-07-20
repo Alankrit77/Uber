@@ -1,14 +1,21 @@
 import { useState } from "react";
 import { LogOut, Clock } from "lucide-react";
-import { logoutCaptain } from "../../services/captainService";
+import {
+  confirmPassengerRide,
+  logoutCaptain,
+} from "../../services/captainService";
 import { useMutation } from "@tanstack/react-query";
 import CaptainDetails from "../../componets/captainSideView/CaptainDetails";
 import RidePopUp from "../../componets/captainSideView/RidePopUp";
 import ConfirmRidePopUp from "../../componets/captainSideView/ConfirmRidePopUp";
+import { useCaptainContext } from "../../context/captainContext.jsx";
+import { useEffect } from "react";
+import { socket } from "../../context/socketHook.js";
 
 const CaptainHome = () => {
+  const { captain, currentRide, setCurrentRide } = useCaptainContext();
   const [isOnline, setIsOnline] = useState(true);
-  const [isRidePopUpVisible, setIsRidePopUpVisible] = useState(true);
+  const [isRidePopUpVisible, setIsRidePopUpVisible] = useState(false);
   const [isConfirmRidePopUpVisible, setIsConfirmRidePopUpVisible] =
     useState(false);
 
@@ -20,8 +27,11 @@ const CaptainHome = () => {
       window.location.href = "/captain/login";
     },
   });
+  const rideConfirm = useMutation({
+    mutationFn: confirmPassengerRide,
+  });
   const driverStats = {
-    name: "Michael Davis",
+    name: captain?.fullname?.firstname + " " + captain?.fullname?.lastname,
     todayEarnings: "$85.50",
     totalTrips: 142,
     rating: 4.8,
@@ -30,6 +40,51 @@ const CaptainHome = () => {
 
   const handleLogout = () => {
     logoutMutation.mutate();
+  };
+  useEffect(() => {
+    socket.emit("join", {
+      userId: captain._id,
+      userType: "captain",
+    });
+
+    const updateLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          socket.emit("update-location-captain", {
+            userId: captain._id,
+            location: {
+              ltd: position.coords.latitude,
+              lng: position.coords.longitude,
+            },
+          });
+        });
+      }
+    };
+    const intervalId = setInterval(updateLocation, 15000);
+    updateLocation();
+    return () => clearInterval(intervalId);
+  }, [captain._id]);
+
+  useEffect(() => {
+    const handleNewRide = (data) => {
+      if (data !== null && data !== undefined) {
+        setCurrentRide(data);
+        setIsRidePopUpVisible(true);
+      }
+    };
+
+    socket.on("new_ride", handleNewRide);
+
+    return () => {
+      socket.off("new_ride", handleNewRide);
+    };
+  }, []);
+
+  const confirmRide = async () => {
+    rideConfirm.mutate(currentRide._id);
+    setIsRidePopUpVisible(false);
+    console.log("Confirming ride clicked");
+    setIsConfirmRidePopUpVisible(true);
   };
 
   return (
@@ -57,9 +112,10 @@ const CaptainHome = () => {
         captainStates={driverStats}
       />
       <RidePopUp
+        currentRide={currentRide}
         setIsRidePopUpVisible={setIsRidePopUpVisible}
         isRidePopUpVisible={isRidePopUpVisible}
-        setIsConfirmRidePopUpVisible={setIsConfirmRidePopUpVisible}
+        confirmRide={confirmRide}
       />
       <ConfirmRidePopUp
         isConfirmRidePopUpVisible={isConfirmRidePopUpVisible}

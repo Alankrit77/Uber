@@ -6,11 +6,25 @@ import { Users, MapPin, Clock, Loader } from "lucide-react";
 const LookingForDriver = ({
   isLookingForDriver,
   isWaitingForDriver,
-  setIsWaitingForDriver,
+  actualRideFare,
+  pickupLocation,
+  destinationLocation,
 }) => {
   const { selectedVehicle } = useUserContext();
 
   const selectedRide = rideTypes.find((ride) => ride.id === selectedVehicle);
+  const formatLocation = (location) => {
+    if (!location) return "Not specified";
+    if (typeof location === "string") return location;
+    if (typeof location === "object") {
+      if (location.display_name) return location.display_name;
+      if (location.name) return location.name;
+      if (location.address) return location.address;
+
+      return "Location selected";
+    }
+    return "Location data unavailable";
+  };
 
   return (
     <div>
@@ -37,7 +51,6 @@ const LookingForDriver = ({
               Finding the perfect driver for your ride...
             </p>
           </div>
-
           {selectedRide && (
             <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
               <div className="flex items-center justify-between mb-4">
@@ -57,7 +70,7 @@ const LookingForDriver = ({
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-green-600">
-                    {selectedRide.price}
+                    {actualRideFare}
                   </p>
                 </div>
               </div>
@@ -74,7 +87,6 @@ const LookingForDriver = ({
               </div>
             </div>
           )}
-
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center py-3 px-4 bg-blue-50 rounded-lg">
               <span className="text-gray-700 font-medium">Status</span>
@@ -85,14 +97,17 @@ const LookingForDriver = ({
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <span className="text-gray-600">Pickup</span>
-              <span className="font-medium">Your Location</span>
+              <span className="font-medium">
+                {formatLocation(pickupLocation)}
+              </span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-gray-600">Destination</span>
-              <span className="font-medium">Selected Destination</span>
+              <span className="font-medium">
+                {formatLocation(destinationLocation || "Selected Destination")}
+              </span>
             </div>
-          </div>
-
+          </div>{" "}
           <div className="space-y-3 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -113,11 +128,8 @@ const LookingForDriver = ({
               <span className="text-gray-500">Driver En Route</span>
             </div>
           </div>
-
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-            <p
-              onClick={() => setIsWaitingForDriver(true)}
-              className="text-yellow-800 text-sm">
+            <p className="text-yellow-800 text-sm">
               This may take a few moments. We'll notify you once a driver
               accepts your ride!
             </p>

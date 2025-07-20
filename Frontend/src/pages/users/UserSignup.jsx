@@ -22,6 +22,7 @@ const UserSignUp = () => {
   });
 
   const onSubmit = (data) => {
+    console.log("Form data submitted:", data);
     if (data.password !== data.confirmPassword) {
       showToast.error("Passwords do not match.");
       return;
@@ -33,8 +34,10 @@ const UserSignUp = () => {
         lastname: data.lastname,
       },
       email: data.email,
+      phone: data.phone,
       password: data.password,
     };
+    console.log("Registering user with payload:", payload);
 
     const loadingToast = showToast.loading("Creating your account...");
     registerMutation.mutate(payload, {
@@ -76,13 +79,24 @@ const UserSignUp = () => {
             </div>
           </div>
           <div>
-            <h3 className="text-lg font-medium mb-2">What's your email?</h3>
-            <input
-              {...register("email", { required: true })}
-              type="email"
-              placeholder="email@gmail.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
+            <h3 className="text-lg font-medium mb-2">How can we reach you?</h3>
+            <div className="flex gap-2">
+              <input
+                {...register("email", { required: true })}
+                type="email"
+                placeholder="email@gmail.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+
+              <input
+                {...register("phone", { required: true })}
+                type="text"
+                placeholder="1234567890"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                maxLength={10}
+                pattern="[0-9]{10}" // Ensures only 10 digits are allowed
+              />
+            </div>
           </div>
           <div>
             <h3 className="text-lg font-medium mb-2">What's your password?</h3>

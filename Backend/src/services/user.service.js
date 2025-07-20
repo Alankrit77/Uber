@@ -1,14 +1,8 @@
 const userModel = require("../models/user.model");
 
 class UserService {
-  async createUser(firstname, lastname, email, password) {
-    console.log("Creating user with data:", {
-      firstname,
-      lastname,
-      email,
-      password,
-    });
-    if (!firstname || !email || !password) {
+  async createUser(firstname, lastname, email, password, phone) {
+    if (!firstname || !email || !password || !phone) {
       throw new Error("All fields are required");
     }
     const user = await userModel.create({
@@ -17,6 +11,7 @@ class UserService {
         lastname,
       },
       email,
+      phone,
       password,
     });
     return user;

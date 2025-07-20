@@ -44,7 +44,7 @@ const WaitingForDriver = ({ isWaitingForDriver }) => {
         isWaitingForDriver ? "translate-y-0" : "translate-y-full"
       } ${expandedCard ? "max-h-[90vh]" : "max-h-[40vh]"}`}>
       <div className="h-6 bg-white flex justify-center items-center relative">
-        <button
+        {/* <button
           onClick={() => setExpandedCard(!expandedCard)}
           className="absolute -top-3 bg-white w-12 h-6 rounded-full shadow-md flex justify-center items-center">
           <ChevronDown
@@ -53,7 +53,7 @@ const WaitingForDriver = ({ isWaitingForDriver }) => {
               expandedCard ? "rotate-180" : ""
             }`}
           />
-        </button>
+        </button> */}
       </div>
 
       <div className="p-5">

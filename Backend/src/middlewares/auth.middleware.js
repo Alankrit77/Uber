@@ -27,8 +27,10 @@ class authMiddleware {
     }
   };
   authCaptain = async (req, res, next) => {
+    console.log("Auth Captain Middleware called", req.cookies, req.headers);
     const token =
       req?.cookies.token || req?.headers?.authorization?.split(" ")[1];
+    console.log("Token:", token);
     if (!token) {
       return errorResponse(res, 401, "Unauthorized");
     }

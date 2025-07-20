@@ -57,5 +57,27 @@ const getCaptainProfile = async () => {
     throw error;
   }
 };
+const confirmPassengerRide = async (rideId) => {
+  try {
+    const token = localStorage.getItem("CaptainToken");
+    console.log("Confirming ride with ID:", token);
+    if (token) {
+      setAuthToken(token);
+    }
+    const response = await fetcher("/rides/confirm_ride", HttpMethods.POST, {
+      rideId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error confirming passenger ride:", error);
+    throw error;
+  }
+};
 
-export { registerCaptain, loginCaptain, logoutCaptain, getCaptainProfile };
+export {
+  registerCaptain,
+  loginCaptain,
+  logoutCaptain,
+  getCaptainProfile,
+  confirmPassengerRide,
+};

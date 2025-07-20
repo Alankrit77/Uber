@@ -1,26 +1,21 @@
 import { MapPin, Clock, DollarSign, Star, User } from "lucide-react";
+import { useUserContext } from "../../context/userContext";
 
-const rideRequest = {
-  passengerName: "Alex Johnson",
-  passengerRating: 4.7,
-  pickupLocation: "123 Main Street",
-  destination: "456 Park Avenue",
-  estimatedFare: "$18.75",
-  estimatedDuration: "15 mins",
-  distanceToPickup: "0.7 miles",
-};
 const RidePopUp = ({
   isRidePopUpVisible,
   setIsRidePopUpVisible,
-  setIsConfirmRidePopUpVisible,
+  currentRide,
+  confirmRide,
 }) => {
+  const { setIsWaitingForDriver } = useUserContext();
   const onReject = () => {
     setIsRidePopUpVisible(false);
   };
   const HandleAccept = () => {
-    setIsRidePopUpVisible(false);
-    setIsConfirmRidePopUpVisible(true);
+    confirmRide();
+    setIsWaitingForDriver(true);
   };
+
   return (
     <div
       className={`fixed bottom-0 bg-white w-full px-5 py-6 z-30 rounded-t-3xl shadow-lg transition-transform duration-300 ease-in-out ${
@@ -35,19 +30,14 @@ const RidePopUp = ({
           <User size={20} className="text-gray-700" />
         </div>
         <div className="ml-3">
-          <h3 className="font-medium">{rideRequest.passengerName}</h3>
-          <div className="flex items-center">
-            <Star size={14} className="text-yellow-500" />
-            <span className="ml-1 text-sm text-gray-500">
-              {rideRequest.passengerRating}
-            </span>
-          </div>
+          <h3 className="font-medium">
+            {currentRide?.passengerName?.firstname}{" "}
+            {currentRide?.passengerName?.lastname}
+          </h3>
         </div>
         <div className="ml-auto flex items-center text-green-600">
           <Clock size={16} className="mr-1" />
-          <span className="text-sm font-medium">
-            {rideRequest.distanceToPickup} away
-          </span>
+          <span className="text-sm font-medium">0.5 miles away</span>
         </div>
       </div>
 
@@ -58,7 +48,7 @@ const RidePopUp = ({
           </div>
           <div>
             <p className="text-xs text-gray-500">Pickup location</p>
-            <p className="font-medium">{rideRequest.pickupLocation}</p>
+            <p className="font-medium">{currentRide?.pickup}</p>
           </div>
         </div>
 
@@ -68,7 +58,7 @@ const RidePopUp = ({
           </div>
           <div>
             <p className="text-xs text-gray-500">Destination</p>
-            <p className="font-medium">{rideRequest.destination}</p>
+            <p className="font-medium">{currentRide?.destination}</p>
           </div>
         </div>
       </div>
@@ -80,7 +70,7 @@ const RidePopUp = ({
           </div>
           <div>
             <p className="text-xs text-gray-500">Estimated fare</p>
-            <p className="font-bold text-xl">{rideRequest.estimatedFare}</p>
+            <p className="font-bold text-xl">₹{currentRide?.fare}</p>
           </div>
         </div>
 
@@ -88,7 +78,7 @@ const RidePopUp = ({
           <p className="text-xs text-gray-500">Estimated time</p>
           <div className="flex items-center">
             <Clock size={16} className="text-gray-700 mr-1" />
-            <p className="font-medium">{rideRequest.estimatedDuration}</p>
+            <p className="font-medium">{currentRide?.estimatedTime?.text}</p>
           </div>
         </div>
       </div>

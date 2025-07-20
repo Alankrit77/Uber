@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const UserContext = createContext();
 
@@ -10,8 +10,15 @@ export const UserProvider = ({ children }) => {
       lastname: "",
     },
   });
-  const [selectedVehicle, setSelectedVehicle] = useState();
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  useEffect(() => {
+    if (storedUser) {
+      setUser(storedUser.user);
+    }
+  }, []);
 
+  const [selectedVehicle, setSelectedVehicle] = useState();
+  const [isWaitingForDriver, setIsWaitingForDriver] = useState(false);
   const handleConfirmRide = (id) => {
     setSelectedVehicle(id);
   };
@@ -22,6 +29,8 @@ export const UserProvider = ({ children }) => {
     handleConfirmRide,
     selectedVehicle,
     setSelectedVehicle,
+    isWaitingForDriver,
+    setIsWaitingForDriver,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

@@ -53,6 +53,7 @@ const getAutoSuggestions = async (req, res) => {
   if (!errors.isEmpty()) {
     return errorResponse(res, 400, { errors: errors.array() });
   }
+  
   if (!query) {
     return errorResponse(res, 400, "Query is required for suggestions");
   }
@@ -67,7 +68,6 @@ const getAutoSuggestions = async (req, res) => {
     if (radius) options.radius = parseInt(radius);
     if (combineSources === "true") options.combineSources = true;
 
-    // Generate a session token if needed (could be stored in user session)
     const sessionToken = req.session?.mapSessionToken || null;
 
     const suggestions = await getSuggestions(query, sessionToken, options);

@@ -11,8 +11,9 @@ class UserController {
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
-      const { fullname } = req.body;
+      const { fullname, phone } = req.body;
       const { email, password } = req.body;
+
       const userIsAlreadyExists = await userModel.findOne({ email });
       if (userIsAlreadyExists) {
         return errorResponse(res, 400, "User already exists");
@@ -22,11 +23,13 @@ class UserController {
         fullname.firstname,
         fullname.lastname,
         email,
-        hashedPassword
+        hashedPassword,
+        phone
       );
       const token = await user.generateAuthToken();
       const userToSend = user.toObject();
       delete userToSend.password;
+      console.log("User registered successfully:", userToSend);
       successResponse(res, 201, "User registered successfully", {
         user: userToSend,
         token,

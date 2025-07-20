@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const CaptainContext = createContext();
 
@@ -17,8 +17,25 @@ export const CaptainProvider = ({ children }) => {
       vehicleType: "",
     },
   });
+  const [currentRide, setCurrentRide] = useState(null);
 
-  const value = { captain, setCaptain };
+  const captainData = JSON.parse(localStorage.getItem("captain"));
+  console.log("Captain Data from localStorage:", captainData);
+  useEffect(() => {
+    const stored = localStorage.getItem("captain");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.captain) {
+          setCaptain(parsed?.captain);
+        }
+      } catch (err) {
+        console.error("Error parsing captain from localStorage", err);
+      }
+    }
+  }, []);
+
+  const value = { captain, setCaptain, currentRide, setCurrentRide };
 
   return (
     <CaptainContext.Provider value={value}>{children}</CaptainContext.Provider>

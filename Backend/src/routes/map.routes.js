@@ -25,6 +25,7 @@ router.get(
     .withMessage("Destination address is required"),
   mapController.getDistance
 );
+
 router.get(
   "/suggestions",
   authMiddleware.authUser,

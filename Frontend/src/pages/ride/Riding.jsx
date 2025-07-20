@@ -37,15 +37,12 @@ const Riding = () => {
       </div>
 
       <div className="h-1/2 bg-white">
-        {/* Progress bar */}
         <div className="px-4 pt-4">
           <div className="flex justify-between mt-1.5 text-sm text-gray-500">
             <span>Pickup</span>
             <span>Destination</span>
           </div>
         </div>
-
-        {/* Driver info */}
         <div className="flex items-center justify-between px-4 py-5 border-b">
           <div className="flex items-center">
             <img

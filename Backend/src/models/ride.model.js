@@ -47,6 +47,11 @@ const rideSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  otp: {
+    type: String,
+    select: false,
+    required: true,
+  },
 });
 
 const Ride = mongoose.model("Ride", rideSchema);

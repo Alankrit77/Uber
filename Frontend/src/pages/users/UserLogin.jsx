@@ -14,7 +14,10 @@ const UserLogin = () => {
   const { register, handleSubmit } = useForm();
   const navigate = useNavigate();
   const { setUser } = useUserContext();
-
+  const token = localStorage.getItem("UserToken");
+  if (token) {
+    navigate("/home");
+  }
   const loginMutation = useMutation({
     mutationFn: loginUser,
     mutationKey: ["loginUser"],

@@ -1,0 +1,5 @@
+{
+  "watch": ["."],
+  "ignore": ["../Frontend", "frontend", "src"],
+  "ext": "js,json"
+}

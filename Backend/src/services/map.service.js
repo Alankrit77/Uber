@@ -1,3 +1,6 @@
+const { socket } = require("../../../Frontend/src/context/socketHook");
+const captainModel = require("../models/captain.model");
+
 let fetch;
 try {
   fetch = global.fetch || require("node-fetch");
@@ -66,15 +69,10 @@ const getCoordinatesFromAddress = async (address) => {
     // Try Google Maps API first
     return await getCoordinatesFromGoogleMaps(address);
   } catch (googleError) {
-    console.log(
-      `Google Maps geocoding failed: ${googleError.message}, trying fallback...`
-    );
-
     try {
       // Fallback to Nominatim if Google fails
       return await getCoordinatesFromNominatim(address);
     } catch (nominatimError) {
-      console.error("Nominatim fallback failed:", nominatimError);
       throw new Error(
         `Geocoding failed: ${nominatimError.message} (Google error: ${googleError.message})`
       );
@@ -114,7 +112,6 @@ const getDistanceFromGoogleMaps = async (origin, destination) => {
       }`
     );
   } catch (error) {
-    console.error("Google Distance Matrix API error:", error);
     // If Google API fails, try the fallback
     return getDistanceFromOSRM(origin, destination);
   }
@@ -172,7 +169,6 @@ const getDistanceFromOSRM = async (origin, destination) => {
 
     throw new Error(`OSRM API: ${data.code || "Unknown error"}`);
   } catch (error) {
-    console.error("OSRM fallback failed:", error);
     throw new Error(`Failed to calculate distance: ${error.message}`);
   }
 };
@@ -292,7 +288,6 @@ const getSuggestions = async (input, sessionToken = null, options = {}) => {
               : results;
         }
       } catch (nominatimError) {
-        console.error("Nominatim additional results failed:", nominatimError);
         errors.push(nominatimError.message);
       }
     }
@@ -313,9 +308,6 @@ const getSuggestions = async (input, sessionToken = null, options = {}) => {
     // Limit the number of results
     return results.slice(0, limit);
   } catch (googleError) {
-    console.log(
-      `Google Places API failed: ${googleError.message}, trying fallback...`
-    );
     errors.push(googleError.message);
 
     try {
@@ -326,7 +318,6 @@ const getSuggestions = async (input, sessionToken = null, options = {}) => {
       );
       return nominatimResults.slice(0, limit);
     } catch (nominatimError) {
-      console.error("Nominatim suggestions fallback failed:", nominatimError);
       errors.push(nominatimError.message);
       throw new Error(
         `Failed to get location suggestions: ${errors.join(", ")}`
@@ -499,8 +490,66 @@ const getSuggestionsFromNominatim = async (input, options = {}) => {
   return [];
 };
 
+const getCaptainsInTheRadius = async (lat, lng, radius) => {
+  if (!lat || !lng || !radius) {
+    throw new Error("Latitude, longitude and radius are required");
+  }
+
+  // Validate that lat and lng are valid numbers
+  if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
+    throw new Error("Latitude, longitude and radius must be valid numbers");
+  }
+
+  const captains = await captainModel.find({
+    "location.ltd": { $exists: true, $ne: null },
+    "location.lng": { $exists: true, $ne: null },
+  });
+
+  const captainsInRadius = captains.filter((captain) => {
+    if (!captain.location || !captain.location.ltd || !captain.location.lng) {
+      return false;
+    }
+
+    const distance = calculateDistance(
+      lat,
+      lng,
+      captain.location.ltd,
+      captain.location.lng
+    );
+
+    return distance <= radius;
+  });
+  return captainsInRadius.map((captain) => ({
+    id: captain._id,
+    name: `${captain.fullname.firstname} ${
+      captain.fullname.lastname || ""
+    }`.trim(),
+    vehicleType: captain.vehicle.vehicleType,
+    location: captain.location,
+    phone: captain.phone,
+    vehicle: captain.vehicle,
+    socketId: captain.socketId,
+  }));
+};
+
+// Helper function to calculate distance between two points using Haversine formula
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Radius of the Earth in kilometers
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in kilometers
+  return distance;
+};
 module.exports = {
   getCoordinatesFromAddress,
   getDistanceFromGoogleMaps,
   getSuggestions,
+  getCaptainsInTheRadius,
 };

@@ -16,12 +16,28 @@ const HttpMethods = {
 };
 
 const fetcher = async (url, method, data) => {
-  const options = {
-    method,
-    url,
-    ...(data && { data }),
-  };
-  return apiService(options)
+  // Handle both calling conventions:
+  // 1. fetcher({ url, method, data }) - single options object
+  // 2. fetcher(url, method, data) - separate parameters
+  let config = {};
+
+  if (typeof url === "object") {
+    // First parameter is an options object
+    config = url;
+  } else {
+    // Parameters passed separately
+    config = {
+      url: url,
+      method: method,
+    };
+
+    // Only add data if it exists
+    if (data) {
+      config.data = data;
+    }
+  }
+
+  return apiService(config)
     .then((response) => response.data)
     .catch((error) => {
       console.error("API call failed:", error);

@@ -5,6 +5,9 @@ const registerValidation = [
     .isLength({ min: 3 })
     .withMessage("First name is required"),
   body("email").isEmail().withMessage("Email is required"),
+  body("phone")
+    .isMobilePhone("any")
+    .withMessage("Phone number is required and must be valid"),
   body("password")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),

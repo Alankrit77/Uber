@@ -15,6 +15,11 @@ const userSchema = new Schmema({
       minlength: [3, "Lastname must be at least 3 characters"],
     },
   },
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   email: {
     type: String,
     required: true,

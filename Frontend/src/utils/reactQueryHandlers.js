@@ -18,6 +18,7 @@ export const handleCapatainError = (error) => {
 };
 
 export const handleUserSuccess = (data, navigate, setData) => {
+  console.log("User data:", data);
   localStorage.setItem("user", JSON.stringify(data));
   localStorage.setItem("UserToken", data.token);
   showToast.success(data.message);

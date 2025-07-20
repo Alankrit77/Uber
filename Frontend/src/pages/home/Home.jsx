@@ -1,8 +1,14 @@
-import { lazy, useRef, useState } from "react";
+import { lazy, useEffect, useRef, useState } from "react";
 
 import Uber from "../../assets/uber_trans.png";
 import LookingForDriver from "../../componets/userSideView/LookingForDriver";
 import WaitingForDriver from "../../componets/userSideView/WaitingForDriver";
+import { useMutation } from "@tanstack/react-query";
+import {
+  createRideForPassenger,
+  getFareEstimateForRide,
+  showPickUpSuggestion,
+} from "../../services/ride.service.js";
 
 const LocationSearch = lazy(() =>
   import("../../componets/userSideView/LocationSearch")
@@ -13,16 +19,86 @@ const VehicleDetails = lazy(() =>
 const ConfirmRide = lazy(() =>
   import("../../componets/userSideView/ConfirmRide.jsx")
 );
+import { socket, useSocket } from "../../context/socketHook.js";
+import { useUserContext } from "../../context/userContext.jsx";
 
 const Home = () => {
   const [isSearchTop, setIsSearchTop] = useState(false);
   const [vehicle, setVehicle] = useState(false);
   const [confirmRide, setConfirmRide] = useState(false);
   const [isLookingForDriver, setIsLookingForDriver] = useState(false);
-  const [isWaitingForDriver, setIsWaitingForDriver] = useState(false);
-  const searchRef = useRef(null);
 
-  const handleGoesTop = () => {
+  const searchRef = useRef(null);
+  const debounceTimeout = useRef(5000);
+  const [showPickup, setShowPickup] = useState([]);
+  const [showDestination, setShowDestination] = useState([]);
+  const [activeField, setActiveField] = useState("pickup");
+  const [pickupLocation, setPickupLocation] = useState({});
+  const [destinationLocation, setDestinationLocation] = useState({});
+  const [rideFare, setRideFare] = useState({});
+  const [actualRideFare, setActualRideFare] = useState();
+  const [pickupInputValue, setPickupInputValue] = useState("");
+  const [destinationInputValue, setDestinationInputValue] = useState("");
+  const { sendMessage, receiveMessage } = useSocket();
+  const { user, isWaitingForDriver, setIsWaitingForDriver } = useUserContext();
+
+  const showPickSuggestion = useMutation({
+    mutationFn: showPickUpSuggestion,
+  });
+  const showDestinationSuggestion = useMutation({
+    mutationFn: showPickUpSuggestion,
+  });
+  const getFareEstimate = useMutation({
+    mutationFn: getFareEstimateForRide,
+  });
+
+  const createRideMutation = useMutation({
+    mutationFn: createRideForPassenger,
+  });
+
+  const handleSearchForPickup = (event) => {
+    const query = event.target.value;
+    setPickupInputValue(query);
+    if (!query) {
+      setShowPickup([]);
+    }
+    setActiveField("pickup");
+    clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      if (query.length > 2) {
+        showPickSuggestion.mutate(query, {
+          onSuccess: (data) => {
+            setShowPickup(data);
+          },
+          onError: (error) => {
+            console.error("Error fetching suggestions:", error);
+          },
+        });
+      }
+    }, 300);
+  };
+  const handleSearchForDestination = (event) => {
+    const query = event.target.value;
+    setDestinationInputValue(query);
+    if (!query) {
+      setShowDestination([]);
+    }
+    setActiveField("destination");
+    clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      if (query.length > 2) {
+        showDestinationSuggestion.mutate(query, {
+          onSuccess: (data) => {
+            setShowDestination(data);
+          },
+          onError: (error) => {
+            console.error("Error fetching destination suggestions:", error);
+          },
+        });
+      }
+    }, 300);
+  };
+  const handleSearchGoesUp = () => {
     setIsSearchTop(true);
   };
 
@@ -30,11 +106,56 @@ const Home = () => {
     setIsSearchTop(false);
   };
 
-  const handleSearch = (event) => {
+  const handlefindVehicle = async (event) => {
     event.preventDefault();
-    console.log("Search submitted");
+    if (!pickupInputValue || !destinationInputValue) {
+      alert("Please select both pickup and destination locations.");
+      return;
+    }
+    setPickupLocation(pickupInputValue);
+    setDestinationLocation(destinationInputValue);
+    const payload = {
+      pickup: pickupInputValue,
+      destination: destinationInputValue,
+    };
+    getFareEstimate.mutate(payload, {
+      onSuccess: (data) => {
+        setRideFare(data.data);
+        setVehicle(true);
+      },
+      onError: (error) => {
+        console.error("Error fetching fare estimate:", error);
+      },
+    });
+  };
+  const createRide = async (vehicleType) => {
+    const payload = {
+      pickup: pickupLocation,
+      destination: destinationLocation,
+      vehicleType: vehicleType,
+    };
+    console.log("Creating ride with payload:", payload);
+
+    createRideMutation.mutate(payload, {
+      onSuccess: (data) => {
+        console.log("Ride created successfully:", data);
+        setIsLookingForDriver(true);
+      },
+      onError: (error) => {
+        console.error("Error creating ride:", error);
+      },
+    });
   };
 
+  useEffect(() => {
+    sendMessage("join", { userType: "user", userId: user._id });
+  }, []);
+
+  socket.on("ride_confirmed", (data) => {
+    console.log("Ride confirmed:", data);
+    setIsLookingForDriver(false);
+    setIsWaitingForDriver(true);
+  });
   return (
     <div className="h-screen relative">
       <img
@@ -79,44 +200,79 @@ const Home = () => {
               </svg>
             </div>
           ))}
-
         {!vehicle && (
           <>
             <h4 className="text-2xl font-semibold">Find your ride</h4>
             <form
               className="flex flex-col space-y-4 mt-4"
-              onSubmit={handleSearch}>
+              onSubmit={handlefindVehicle}>
               <div className="relative">
                 <div className="absolute h-16 w-1 top-1/3 bg-black mx-4 my-8"></div>
                 <div className="absolute w-2 h-2 bg-black rounded-full top-1/3 mx-3.5 my-8"></div>
                 <div
                   className="absolute w-2 h-2 bg-black rounded-full top-1/3 mx-3.5 my-8"
                   style={{ top: "calc(33.333333% + 4rem)" }}></div>
-              </div>
+              </div>{" "}
               <input
-                onClick={handleGoesTop}
+                onClick={() => {
+                  handleSearchGoesUp();
+                  setActiveField("pickup");
+                }}
+                onChange={(e) => {
+                  handleSearchForPickup(e);
+                }}
                 type="text"
+                value={pickupInputValue}
+                name="pickup"
                 placeholder="Enter pickup location"
                 className="border p-2 rounded bg-[#eee] px-10"
-              />
+              />{" "}
               <input
-                onClick={handleGoesTop}
+                onClick={() => {
+                  handleSearchGoesUp();
+                  setActiveField("destination");
+                }}
+                onChange={(e) => {
+                  handleSearchForDestination(e);
+                }}
                 type="text"
+                value={destinationInputValue}
+                name="destination"
                 placeholder="Enter drop-off location"
                 className="border p-2 rounded bg-[#eee] px-10"
-              />
+              />{" "}
               <button
                 type="submit"
-                className="bg-black text-white p-2 rounded hover:bg-gray-800">
-                Search
+                disabled={
+                  !pickupInputValue ||
+                  !destinationInputValue ||
+                  getFareEstimate.isPending
+                }
+                className={`p-2 rounded ${
+                  !pickupInputValue || !destinationInputValue
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-black text-white hover:bg-gray-800"
+                }`}>
+                {getFareEstimate.isPending
+                  ? "Finding vehicle..."
+                  : "Find vehicle"}
               </button>
             </form>
           </>
-        )}
-
+        )}{" "}
         {isSearchTop && (
           <div className="mt-4">
-            <LocationSearch vehicle={vehicle} setVehicle={setVehicle} />
+            <LocationSearch
+              vehicle={vehicle}
+              suggestions={
+                activeField === "pickup" ? showPickup : showDestination
+              }
+              activeField={activeField}
+              setPickupLocation={setPickupLocation}
+              setDestinationLocation={setDestinationLocation}
+              setPickupInputValue={setPickupInputValue}
+              setDestinationInputValue={setDestinationInputValue}
+            />
           </div>
         )}
       </div>
@@ -125,18 +281,27 @@ const Home = () => {
         vehicle={vehicle}
         setConfirmRide={setConfirmRide}
         confirmRide={confirmRide}
+        rideFare={rideFare}
+        setActualRideFare={setActualRideFare}
       />
       <ConfirmRide
         vehicle={vehicle}
         confirmRide={confirmRide}
         setConfirmRide={setConfirmRide}
-        setIsLookingForDriver={setIsLookingForDriver}
         isLookingForDriver={isLookingForDriver}
+        pickupLocation={pickupLocation}
+        destinationLocation={destinationLocation}
+        rideFare={rideFare}
+        actualRideFare={actualRideFare}
+        createRide={createRide}
       />
       <LookingForDriver
         isLookingForDriver={isLookingForDriver}
         isWaitingForDriver={isWaitingForDriver}
         setIsWaitingForDriver={setIsWaitingForDriver}
+        actualRideFare={actualRideFare}
+        pickupLocation={pickupLocation}
+        destinationLocation={destinationLocation}
       />
       <WaitingForDriver
         setIsWaitingForDriver={setIsWaitingForDriver}
